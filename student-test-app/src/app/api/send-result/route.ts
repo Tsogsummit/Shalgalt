@@ -5,7 +5,7 @@ import nodemailer from 'nodemailer';
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { studentName, variant, score, total, answers } = body;
+        const { studentName, studentClass, variant, score, total, answers } = body;
 
         // Use environment variables for configuration, fallback to a mock sender if not present
         const transporter = nodemailer.createTransport({
@@ -18,12 +18,15 @@ export async function POST(request: Request) {
             },
         });
 
+        const safeStudentClass = studentClass || 'Unknown Class';
+
         const mailOptions = {
             from: process.env.SMTP_USER || '"Test System" <no-reply@test.com>',
             to: 'tselmegict@gmail.com',
-            subject: `Test Result: ${studentName} - Variant ${variant}`,
+            subject: `Test Result: ${studentName} (${safeStudentClass}) - Variant ${variant}`,
             text: `
         Student Name: ${studentName}
+        Class: ${safeStudentClass}
         Variant: ${variant}
         Score: ${score} / ${total}
         
@@ -33,6 +36,7 @@ export async function POST(request: Request) {
             html: `
         <h1>Test Result</h1>
         <p><strong>Student Name:</strong> ${studentName}</p>
+        <p><strong>Class:</strong> ${safeStudentClass}</p>
         <p><strong>Variant:</strong> ${variant}</p>
         <p><strong>Score:</strong> ${score} / ${total} (${Math.round((score / total) * 100)}%)</p>
         <hr />

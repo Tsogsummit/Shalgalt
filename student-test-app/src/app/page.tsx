@@ -12,6 +12,7 @@ type AppState = 'NAME_INPUT' | 'VARIANT_SELECTION' | 'QUIZ' | 'SUBMITTING' | 'RE
 export default function Home() {
   const [appState, setAppState] = useState<AppState>('NAME_INPUT');
   const [studentName, setStudentName] = useState('');
+  const [studentClass, setStudentClass] = useState('');
   const [selectedVariant, setSelectedVariant] = useState<'A' | 'B' | null>(null);
   const [currentQuestions, setCurrentQuestions] = useState<Question[]>([]);
   const [score, setScore] = useState(0);
@@ -19,7 +20,8 @@ export default function Home() {
 
   const handleNameSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (studentName.trim()) {
+    e.preventDefault();
+    if (studentName.trim() && studentClass.trim()) {
       setAppState('VARIANT_SELECTION');
     }
   };
@@ -53,6 +55,7 @@ export default function Home() {
         },
         body: JSON.stringify({
           studentName,
+          studentClass,
           variant: selectedVariant,
           score: calculatedScore,
           total: currentQuestions.length,
@@ -74,7 +77,9 @@ export default function Home() {
   const handleRestart = () => {
     // This function is effectively disabled for the user as the button is removed,
     // but kept for type compatibility or admin debug if needed.
+    // but kept for type compatibility or admin debug if needed.
     setStudentName('');
+    setStudentClass('');
     setSelectedVariant(null);
     setCurrentQuestions([]);
     setScore(0);
@@ -86,7 +91,7 @@ export default function Home() {
       {/* Header */}
       <header className="w-full max-w-5xl flex justify-between items-center mb-10 pb-6 border-b border-gray-200">
         <h1 className="text-2xl font-bold text-gray-800 tracking-tight">
-          <span className="text-indigo-600">Шалгалтын</span>Систем
+          <span className="text-indigo-600">Мэдээлэл технологи</span> Улиралын шалгалт 10р анги
         </h1>
         {studentName && (
           <div className="text-sm font-medium text-gray-500 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
@@ -136,11 +141,24 @@ export default function Home() {
                     onChange={(e) => setStudentName(e.target.value)}
                   />
                 </div>
+
+                <div>
+                  <label htmlFor="class" className="block text-sm font-medium text-gray-700 mb-2">Анги</label>
+                  <input
+                    type="text"
+                    id="class"
+                    required
+                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-gray-900 placeholder-gray-400 bg-white"
+                    placeholder="Жишээ: 10c"
+                    value={studentClass}
+                    onChange={(e) => setStudentClass(e.target.value)}
+                  />
+                </div>
                 <button
                   type="submit"
-                  className={`w-full py-3 rounded-lg font-bold text-white transition-all shadow-md ${studentName.trim() ? 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-lg' : 'bg-gray-300 cursor-not-allowed'
+                  className={`w-full py-3 rounded-lg font-bold text-white transition-all shadow-md ${studentName.trim() && studentClass.trim() ? 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-lg' : 'bg-gray-300 cursor-not-allowed'
                     }`}
-                  disabled={!studentName.trim()}
+                  disabled={!studentName.trim() || !studentClass.trim()}
                 >
                   Шалгалтыг эхлүүлэх
                 </button>
