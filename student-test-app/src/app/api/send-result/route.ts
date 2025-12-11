@@ -19,10 +19,17 @@ export async function POST(request: Request) {
         });
 
         const safeStudentClass = studentClass || 'Unknown Class';
+        const lowerClass = safeStudentClass.toLowerCase().trim();
+
+        // Check for 6c (Latin) or 6с (Cyrillic)
+        let recipientEmail = 'tselmegict@gmail.com'; // Default
+        if (lowerClass.includes('6c') || lowerClass.includes('6с')) {
+            recipientEmail = 'A.tseku72@gmail.com';
+        }
 
         const mailOptions = {
             from: process.env.SMTP_USER || '"Test System" <no-reply@test.com>',
-            to: 'tselmegict@gmail.com',
+            to: recipientEmail,
             subject: `Test Result: ${studentName} (${safeStudentClass}) - Variant ${variant}`,
             text: `
         Student Name: ${studentName}

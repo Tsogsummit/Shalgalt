@@ -5,14 +5,16 @@ import React, { useState } from 'react';
 import { VariantSelection } from '@/components/VariantSelection';
 import { QuizInterface } from '@/components/QuizInterface';
 import { ResultSummary } from '@/components/ResultSummary';
-import { variantA, variantB, Question } from '@/data/questions';
+import { grade6VariantA, grade6VariantB, grade11VariantA, grade11VariantB, Question } from '@/data/questions';
 
 type AppState = 'NAME_INPUT' | 'VARIANT_SELECTION' | 'QUIZ' | 'SUBMITTING' | 'RESULT';
+type GradeLevel = '6' | '11' | null;
 
 export default function Home() {
   const [appState, setAppState] = useState<AppState>('NAME_INPUT');
   const [studentName, setStudentName] = useState('');
   const [studentClass, setStudentClass] = useState('');
+  const [gradeLevel, setGradeLevel] = useState<GradeLevel>(null);
   const [selectedVariant, setSelectedVariant] = useState<'A' | 'B' | null>(null);
   const [currentQuestions, setCurrentQuestions] = useState<Question[]>([]);
   const [score, setScore] = useState(0);
@@ -20,15 +22,31 @@ export default function Home() {
 
   const handleNameSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    e.preventDefault();
-    if (studentName.trim() && studentClass.trim()) {
-      setAppState('VARIANT_SELECTION');
+    const cleanClass = studentClass.trim().toLowerCase();
+
+    if (studentName.trim() && cleanClass) {
+      if (cleanClass.startsWith('6')) {
+        setGradeLevel('6');
+        setAppState('VARIANT_SELECTION');
+      } else if (cleanClass.startsWith('11')) {
+        setGradeLevel('11');
+        setAppState('VARIANT_SELECTION');
+      } else {
+        alert('Зөвхөн 6 болон 11-р ангийн сурагчид хамрагдах боломжтой. Ангиа зөв оруулна уу. Жш: 6а, 11б');
+      }
     }
   };
 
   const handleVariantSelect = (variant: 'A' | 'B') => {
     setSelectedVariant(variant);
-    const questions = variant === 'A' ? variantA : variantB;
+    let questions: Question[] = [];
+
+    if (gradeLevel === '6') {
+      questions = variant === 'A' ? grade6VariantA : grade6VariantB;
+    } else if (gradeLevel === '11') {
+      questions = variant === 'A' ? grade11VariantA : grade11VariantB;
+    }
+
     setCurrentQuestions(questions);
     setTotalQuestions(questions.length);
     setAppState('QUIZ');
@@ -56,6 +74,7 @@ export default function Home() {
         body: JSON.stringify({
           studentName,
           studentClass,
+          gradeLevel,
           variant: selectedVariant,
           score: calculatedScore,
           total: currentQuestions.length,
@@ -75,11 +94,9 @@ export default function Home() {
   };
 
   const handleRestart = () => {
-    // This function is effectively disabled for the user as the button is removed,
-    // but kept for type compatibility or admin debug if needed.
-    // but kept for type compatibility or admin debug if needed.
     setStudentName('');
     setStudentClass('');
+    setGradeLevel(null);
     setSelectedVariant(null);
     setCurrentQuestions([]);
     setScore(0);
@@ -91,7 +108,7 @@ export default function Home() {
       {/* Header */}
       <header className="w-full max-w-5xl flex justify-between items-center mb-10 pb-6 border-b border-gray-200">
         <h1 className="text-2xl font-bold text-gray-800 tracking-tight">
-          <span className="text-indigo-600">Мэдээлэл технологи</span> Улиралын шалгалт 10р анги
+          <span className="text-indigo-600">Мэдээлэл технологи</span> Улиралын шалгалт {gradeLevel ? `${gradeLevel}р анги` : ''}
         </h1>
         {studentName && (
           <div className="text-sm font-medium text-gray-500 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
@@ -149,7 +166,7 @@ export default function Home() {
                     id="class"
                     required
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-gray-900 placeholder-gray-400 bg-white"
-                    placeholder="Жишээ: 10c"
+                    placeholder="Жишээ: 6c, 11a"
                     value={studentClass}
                     onChange={(e) => setStudentClass(e.target.value)}
                   />
@@ -168,7 +185,7 @@ export default function Home() {
         )}
 
         {appState === 'VARIANT_SELECTION' && (
-          <VariantSelection onSelect={handleVariantSelect} />
+          <VariantSelection onSelect={handleVariantSelect} gradeLevel={gradeLevel} />
         )}
 
         {appState === 'QUIZ' && (
